@@ -2,8 +2,8 @@
 
 void ThreadPool::start()
 {
-    const uint32_t numThreads = std::thread::hardware_concurrency(); 
-    for (uint32_t ii = 0; ii < numThreads; ++ii)
+	m_threadCount = std::thread::hardware_concurrency(); 
+    for (uint32_t ii = 0; ii < m_threadCount; ++ii)
     {
         m_threads.emplace_back(&ThreadPool::threadLoop, this);
     }
@@ -40,7 +40,7 @@ void ThreadPool::queueJob(const std::function<void()>& job)
     m_mutexCondition.notify_one();
 }
 
-bool ThreadPool::busy()
+bool ThreadPool::isBusy()
 {
     bool isPoolBusy;
     {
@@ -48,6 +48,11 @@ bool ThreadPool::busy()
         isPoolBusy = !m_jobs.empty();
     }
     return isPoolBusy;
+}
+
+uint32_t ThreadPool::getThreadCount()
+{
+    return m_threadCount;
 }
 
 void ThreadPool::stop()

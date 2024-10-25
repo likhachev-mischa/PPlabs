@@ -10,12 +10,14 @@ public:
     void start();
     void queueJob(const std::function<void()>& job);
     void stop();
-    bool busy();
+    bool isBusy();
+    uint32_t getThreadCount();
 
 private:
     void threadLoop();
 
-    bool m_shouldTerminate = false;           
+    bool m_shouldTerminate = false;
+    uint32_t m_threadCount;
     std::mutex m_queueMutex;                 
     std::condition_variable m_mutexCondition;
     std::vector<std::thread> m_threads;
