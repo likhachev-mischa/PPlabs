@@ -3,12 +3,14 @@
 #include <mutex>
 #include <queue>
 #include <vector>
+#include <thread>
+#include <condition_variable>
 
 class ThreadPool
 {
 public:
     void start();
-    void queueJob(const std::function<void()>& job);
+    void queueJob(const std::function<void()>& job);//bind
     void stop();
     bool isBusy();
     uint32_t getThreadCount();
@@ -23,3 +25,4 @@ private:
     std::vector<std::thread> m_threads;
     std::queue<std::function<void()>> m_jobs;
 };
+//the rule of five, the rule of zero
