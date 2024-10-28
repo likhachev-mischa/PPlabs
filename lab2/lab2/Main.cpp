@@ -4,56 +4,74 @@
 
 #include "ThreadPool.h"
 #include <fstream>
+#include <chrono>
 
+void job(float* arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName);
+const size_t ITERATIONS = 100000;
 
-void job(float* arr, size_t bottom, size_t top)
+int main()
 {
-	//using namespace std::chrono_literals;
-	//std::cout << "job start\n";
-	//for (int i = 0; i < 10; ++i)
-	//{
+	ThreadPool pool;
+	size_t poolCount = pool.getThreadCount();
+	std::cout << "Pool count: " << poolCount << '\n';
 
-	//	//printf("job thread %llu ,value %i\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), value);
-	////	std::cout << "job thread "<<std::this_thread::get_id()<<'\t'<<value << '\n';
-	//	std::this_thread::sleep_for(1000ms);
-	//}
-	for (size_t i = bottom; i < top; ++i)
+	const size_t SIZE = 100000;
+	float* arr = new float[SIZE];
+
+	srand(std::time(nullptr));
+	for (size_t i = 0; i < SIZE; ++i)
 	{
-		for (size_t j = 0; j < 100000; ++j)
-			arr[i] = sqrt(arr[i]);
+		arr[i] = rand() % SIZE;
 	}
 
-	std::unique_lock<std::mutex> (fileMutex);
-	std::ofstream file("Output.txt", std::ios::app);
+	const char* FILE_NAME = "Output.txt";
+	std::ofstream file(FILE_NAME);
+	file.clear();
+	file.close();
+
+	size_t step = static_cast<size_t>(floor(SIZE / poolCount));
+	size_t currentStep = 0;
+	std::mutex mut;
+	for (size_t i = 0; i < poolCount; ++i)
+	{
+		size_t prevStep = currentStep;
+		if ((currentStep + step) > (SIZE - step))
+		{
+			currentStep = SIZE;
+		}
+		else
+		{
+			currentStep += step;
+		}
+		pool.queueJob(std::bind(job, arr, prevStep, currentStep, i, &mut, FILE_NAME));
+	}
+
+	//wait for jobs to be passed to threads before joining them
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+}
+
+void job(float* arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName)
+{
+	for (size_t i = bottom; i < top; ++i)
+	{
+		for (size_t j = 0; j < ITERATIONS; ++j)
+		{
+			arr[i] = sqrt(arr[i]);
+			arr[i] *= arr[i];
+		}
+	}
+
+	std::unique_lock<std::mutex> fileMutex(*mut);
+	std::ofstream file(fileName, std::ios::app);
+	std::cout << "id " << id << " opened file\n";
+
 	file.seekp(bottom);
 	for (size_t i = bottom; i < top; ++i)
 	{
 		file << arr[i] << '\n';
 	}
+
 	file.close();
-}
-
-int main()
-{
-	ThreadPool pool;
-	pool.start();
-	size_t poolCount = pool.getThreadCount();
-	std::cout << "Pool count: " << poolCount << '\n';
-	const size_t SIZE = 100000;
-	float arr[SIZE];
-
-	srand(std::time(nullptr));
-	for (size_t i = 0; i < SIZE; ++i)
-	{
-		arr[i] = rand() % 100000;
-	}
-
-
-	size_t step = SIZE / poolCount - 1;
-	for (size_t i = 0; i < poolCount; ++i)
-	{
-		pool.queueJob(std::bind(job, arr, i * step, (i + 1) * step));
-	}
-
-	pool.stop();
+	std::cout << "id " << id << " closed file\n";
 }

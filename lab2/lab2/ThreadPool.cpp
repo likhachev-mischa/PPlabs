@@ -1,5 +1,15 @@
 #include "ThreadPool.h"
 
+ThreadPool::ThreadPool()
+{
+    start();
+}
+
+ThreadPool::~ThreadPool()
+{
+    stop();
+}
+
 void ThreadPool::start()
 {
 	m_threadCount = std::thread::hardware_concurrency(); 

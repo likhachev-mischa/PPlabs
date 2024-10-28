@@ -9,15 +9,17 @@
 class ThreadPool
 {
 public:
-    void start();
+    ThreadPool();
     void queueJob(const std::function<void()>& job);//bind
-    void stop();
     bool isBusy();
     uint32_t getThreadCount();
+    ~ThreadPool();
 
 private:
     void threadLoop();
 
+    void start();
+    void stop();
     bool m_shouldTerminate = false;
     uint32_t m_threadCount;
     std::mutex m_queueMutex;                 
