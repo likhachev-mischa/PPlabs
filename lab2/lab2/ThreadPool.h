@@ -10,10 +10,15 @@ class ThreadPool
 {
 public:
     ThreadPool();
-    void queueJob(const std::function<void()>& job);//bind
+    void queueJob(const std::function<void()>& job);
     bool isBusy();
     uint32_t getThreadCount();
     ~ThreadPool();
+
+	ThreadPool(const ThreadPool& other) = delete;
+	ThreadPool(ThreadPool&& other) = delete;
+	ThreadPool& operator=(const ThreadPool& other) = delete;
+    ThreadPool& operator=(ThreadPool&& other) = delete;
 
 private:
     void threadLoop();
@@ -27,4 +32,3 @@ private:
     std::vector<std::thread> m_threads;
     std::queue<std::function<void()>> m_jobs;
 };
-//the rule of five, the rule of zero

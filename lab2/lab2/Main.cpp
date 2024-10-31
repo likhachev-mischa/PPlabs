@@ -1,5 +1,4 @@
 #include <iostream>
-#include <math.h>
 #include <random>
 
 #include "ThreadPool.h"
@@ -46,9 +45,8 @@ int main()
 		pool.queueJob(std::bind(job, arr, prevStep, currentStep, i, &mut, FILE_NAME));
 	}
 
-	//wait for jobs to be passed to threads before joining them
+	//wait for jobs to be passed to threads before joining them by thread pool destructor
 	std::this_thread::sleep_for(std::chrono::seconds(2));
-
 }
 
 void job(float* arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName)
