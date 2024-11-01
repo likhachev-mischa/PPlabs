@@ -4,8 +4,8 @@
 #include "ThreadPool.h"
 #include <fstream>
 #include <chrono>
-
-void job(float* arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName);
+#include <memory>
+void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName);
 const size_t ITERATIONS = 100000;
 
 int main()
@@ -15,12 +15,12 @@ int main()
 	std::cout << "Pool count: " << poolCount << '\n';
 
 	const size_t SIZE = 100000;
-	float* arr = new float[SIZE];
+	std::shared_ptr<float[]> arr(new float[SIZE], std::default_delete<float[]>());
 
 	srand(std::time(nullptr));
 	for (size_t i = 0; i < SIZE; ++i)
 	{
-		arr[i] = rand() % SIZE;
+		arr[i] = static_cast<float>(rand() % SIZE);
 	}
 
 	const char* FILE_NAME = "Output.txt";
@@ -49,7 +49,7 @@ int main()
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-void job(float* arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName)
+void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName)
 {
 	for (size_t i = bottom; i < top; ++i)
 	{
