@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "ThreadPool.h"
 
+//some operations on array parts with concurrent access to file
 void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName);
 
 int main()
@@ -16,6 +17,7 @@ int main()
 
 	std::shared_ptr<float[]> arr(new float[SIZE], std::default_delete<float[]>());
 
+	//randomize array values
 	srand(std::time(nullptr));
 	for (size_t i = 0; i < SIZE; ++i)
 	{
@@ -26,6 +28,7 @@ int main()
 	file.clear();
 	file.close();
 
+	//calculate array parts based on thread count for parallel processing
 	size_t step = static_cast<size_t>(floor(SIZE / poolCount));
 	size_t currentStep = 0;
 	std::mutex mut;
@@ -49,6 +52,7 @@ int main()
 
 void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName)
 {
+	//arbitrary cpu intensive operation
 	for (size_t i = bottom; i < top; ++i)
 	{
 		for (size_t j = 0; j < ITERATIONS; ++j)
