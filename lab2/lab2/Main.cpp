@@ -1,12 +1,12 @@
-#include <iostream>
-#include <random>
-
-#include "ThreadPool.h"
-#include <fstream>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <random>
+#include "Constants.h"
+#include "ThreadPool.h"
+
 void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::mutex* mut, const char* fileName);
-const size_t ITERATIONS = 100000;
 
 int main()
 {
@@ -14,7 +14,6 @@ int main()
 	size_t poolCount = pool.getThreadCount();
 	std::cout << "Pool count: " << poolCount << '\n';
 
-	const size_t SIZE = 100000;
 	std::shared_ptr<float[]> arr(new float[SIZE], std::default_delete<float[]>());
 
 	srand(std::time(nullptr));
@@ -23,7 +22,6 @@ int main()
 		arr[i] = static_cast<float>(rand() % SIZE);
 	}
 
-	const char* FILE_NAME = "Output.txt";
 	std::ofstream file(FILE_NAME);
 	file.clear();
 	file.close();
