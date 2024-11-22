@@ -3,6 +3,13 @@
 #include <iostream>
 #include <mutex>
 
+uint32_t getThreadId()
+{
+#if defined (_WIN32) || defined (_WIN64)
+	return GetCurrentThreadId();
+#endif
+}
+
 ThreadPool::ThreadPool() : m_threadCount(0)
 {
 	start();

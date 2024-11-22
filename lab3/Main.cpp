@@ -59,7 +59,7 @@ void job(std::shared_ptr<float[]> arr,
          std::shared_ptr<std::mutex> pMut,
          const char* fileName)
 {
-	printf("%lu is doing arbitrary math\n", GetCurrentThreadId());
+	printf("%lu is doing arbitrary math\n", getThreadId());
 	for (size_t i = bottom; i < top; ++i)
 	{
 		for (size_t j = 0; j < lab::ITERATIONS; ++j)
@@ -68,11 +68,11 @@ void job(std::shared_ptr<float[]> arr,
 			arr[i] *= arr[i];
 		}
 	}
-	printf("%lu has done all calculations\n", GetCurrentThreadId());
+	printf("%lu has done all calculations\n", getThreadId());
 
 	std::lock_guard<std::mutex> lock(*pMut);
 	std::ofstream file(fileName, std::ios::app);
-	printf("%lu opened file\n", GetCurrentThreadId());
+	printf("%lu opened file\n", getThreadId());
 
 	file.seekp(bottom);
 	for (size_t i = bottom; i < top; ++i)
@@ -81,5 +81,5 @@ void job(std::shared_ptr<float[]> arr,
 	}
 
 	file.close();
-	printf("%lu closed file\n", GetCurrentThreadId());
+	printf("%lu closed file\n", getThreadId());
 }

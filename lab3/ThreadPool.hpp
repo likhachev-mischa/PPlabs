@@ -8,6 +8,8 @@
 #include <Windows.h>
 #endif
 
+uint32_t getThreadId();
+
 class ThreadPool
 {
 public:
