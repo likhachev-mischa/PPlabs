@@ -4,7 +4,7 @@
 #include <fstream>
 #include <chrono>
 #include <memory>
-#include "WindowsThreadPool.hpp"
+#include "ThreadPool.hpp"
 #include "Constants.hpp"
 
 void job(std::shared_ptr<float[]> arr,
@@ -20,7 +20,7 @@ int main()
 		"LOADS EACH THREAD WITH COMPUTATIONS AND WRITES RESULT TO FILE Output.txt, WHICH REQUIRES THREAD SYNCHRONIZATION\n"
 		"===================\n===================\n");
 
-	WindowsThreadPool pool;
+	ThreadPool pool;
 	size_t threadCount = pool.getThreadCount();
 
 	std::shared_ptr<float[]> arr(new float[lab::SIZE], std::default_delete<float[]>());

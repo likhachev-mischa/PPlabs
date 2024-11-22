@@ -3,21 +3,24 @@
 #include <mutex>
 #include <queue>
 #include <vector>
-#include <Windows.h>
 
-class WindowsThreadPool
+#if defined (_WIN32) || defined (_WIN64)
+#include <Windows.h>
+#endif
+
+class ThreadPool
 {
 public:
-	WindowsThreadPool();
+	ThreadPool();
 	void queueJob(const std::function<void()>& job);
 	bool isBusy();
 	uint32_t getThreadCount();
-	~WindowsThreadPool();
+	~ThreadPool();
 
-	WindowsThreadPool(const WindowsThreadPool& other) = delete;
-	WindowsThreadPool(WindowsThreadPool&& other) = delete;
-	WindowsThreadPool& operator=(const WindowsThreadPool& other) = delete;
-	WindowsThreadPool& operator=(WindowsThreadPool&& other) = delete;
+	ThreadPool(const ThreadPool& other) = delete;
+	ThreadPool(ThreadPool&& other) = delete;
+	ThreadPool& operator=(const ThreadPool& other) = delete;
+	ThreadPool& operator=(ThreadPool&& other) = delete;
 
 private:
 	static unsigned __stdcall threadLoop(void* param);
@@ -26,7 +29,10 @@ private:
 	void stop();
 
 	uint32_t m_threadCount;
+
+#if defined (_WIN32) || defined (_WIN64)
 	std::vector<HANDLE> m_threads;
+#endif
 
 	struct ThreadData
 	{

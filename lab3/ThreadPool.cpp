@@ -1,14 +1,14 @@
-#include "WindowsThreadPool.hpp"
+#include "ThreadPool.hpp"
 
 #include <iostream>
 #include <mutex>
 
-WindowsThreadPool::WindowsThreadPool() : m_threadCount(0)
+ThreadPool::ThreadPool() : m_threadCount(0)
 {
 	start();
 }
 
-void WindowsThreadPool::queueJob(const std::function<void()>& job)
+void ThreadPool::queueJob(const std::function<void()>& job)
 {
 	printf("job is queued\n");
 	{
@@ -18,7 +18,7 @@ void WindowsThreadPool::queueJob(const std::function<void()>& job)
 	m_threadData.mutexCondition.notify_one();
 }
 
-bool WindowsThreadPool::isBusy()
+bool ThreadPool::isBusy()
 {
 	bool isPoolBusy;
 	{
@@ -28,17 +28,17 @@ bool WindowsThreadPool::isBusy()
 	return isPoolBusy;
 }
 
-uint32_t WindowsThreadPool::getThreadCount()
+uint32_t ThreadPool::getThreadCount()
 {
 	return m_threadCount;
 }
 
-WindowsThreadPool::~WindowsThreadPool()
+ThreadPool::~ThreadPool()
 {
 	stop();
 }
 
-unsigned __stdcall WindowsThreadPool::threadLoop(void* param)
+unsigned __stdcall ThreadPool::threadLoop(void* param)
 {
 	auto data = static_cast<ThreadData*>(param);
 	while (!data->shouldTerminate)
@@ -66,7 +66,7 @@ unsigned __stdcall WindowsThreadPool::threadLoop(void* param)
 	return 0;
 }
 
-void WindowsThreadPool::start()
+void ThreadPool::start()
 {
 	m_threadCount = std::thread::hardware_concurrency();
 	printf("THREAD COUNT = %llu\n", m_threadCount);
@@ -76,14 +76,16 @@ void WindowsThreadPool::start()
 	std::lock_guard<std::mutex> lock(m_threadData.queueMutex);
 	for (size_t i = 0; i < m_threadCount; ++i)
 	{
+#if defined (_WIN32) || defined (_WIN64)
 		uint32_t threadId;
 		uintptr_t thread = _beginthreadex(nullptr, 0, &threadLoop, &m_threadData, 0, &threadId);
 		printf("%u is created \n", threadId);
 		m_threads.push_back((HANDLE)(thread));
+#endif
 	}
 }
 
-void WindowsThreadPool::stop()
+void ThreadPool::stop()
 {
 	{
 		std::lock_guard<std::mutex> lock(m_threadData.queueMutex);
@@ -91,12 +93,14 @@ void WindowsThreadPool::stop()
 	}
 	m_threadData.mutexCondition.notify_all();
 
+#if defined (_WIN32) || defined (_WIN64)
 	WaitForMultipleObjects(m_threadCount, m_threads.data(), TRUE, INFINITE);
 
 	for (size_t i = 0; i < m_threadCount; ++i)
 	{
 		CloseHandle(m_threads[i]);
 	}
+#endif
 
 	m_threads.clear();
 }
