@@ -1,73 +1,78 @@
 #include <iostream>
 #include <random>
 
-#include "ThreadPool.h"
 #include <fstream>
 #include <chrono>
 #include <memory>
-#include "WindowsThreadPool.h"
+#include "WindowsThreadPool.hpp"
+#include "Constants.hpp"
 
-void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::shared_ptr<std::mutex>pMut, const char* fileName);
-const size_t ITERATIONS = 100;
+void job(std::shared_ptr<float[]> arr,
+         size_t bottom,
+         size_t top,
+         std::shared_ptr<std::mutex> pMut,
+         const char* fileName);
 
 int main()
 {
-//	ThreadPool pool;
-	//size_t poolCount = pool.getThreadCount();
-	WindowsThreadPool pool;
-	size_t poolCount = pool.getThreadCount();
-	std::cout << "Pool count: " << poolCount << '\n';
+	printf(
+		"THIS PROGRAM CREATES N THREADS (BASED ON HARDWARE STATS) \n"
+		"LOADS EACH THREAD WITH COMPUTATIONS AND WRITES RESULT TO FILE Output.txt, WHICH REQUIRES THREAD SYNCHRONIZATION\n"
+		"===================\n===================\n");
 
-	const size_t SIZE = 1000000;
-	std::shared_ptr<float[]> arr(new float[SIZE], std::default_delete<float[]>());
+	WindowsThreadPool pool;
+	size_t threadCount = pool.getThreadCount();
+
+	std::shared_ptr<float[]> arr(new float[lab::SIZE], std::default_delete<float[]>());
 
 	srand(std::time(nullptr));
-	for (size_t i = 0; i < SIZE; ++i)
+	for (size_t i = 0; i < lab::SIZE; ++i)
 	{
-		arr[i] = static_cast<float>(rand() % SIZE);
+		arr[i] = static_cast<float>(rand() % lab::SIZE);
 	}
 
-	const char* FILE_NAME = "Output.txt";
-	std::ofstream file(FILE_NAME);
+	std::ofstream file(lab::FILE_NAME);
 	file.clear();
 	file.close();
 
-	size_t step = static_cast<size_t>(floor(SIZE / poolCount));
+	size_t step = static_cast<size_t>(floor(lab::SIZE / threadCount));
 	size_t currentStep = 0;
-	std::shared_ptr<std::mutex> pMut(new std::mutex,std::default_delete<std::mutex>());
-	for (size_t i = 0; i < poolCount; ++i)
+	std::shared_ptr<std::mutex> pMutex(new std::mutex);
+	for (size_t i = 0; i < threadCount; ++i)
 	{
 		size_t prevStep = currentStep;
-		if ((currentStep + step) > (SIZE - step))
+		if ((currentStep + step) > (lab::SIZE - step))
 		{
-			currentStep = SIZE;
+			currentStep = lab::SIZE;
 		}
 		else
 		{
 			currentStep += step;
 		}
-		pool.queueJob(std::bind(job, arr, prevStep, currentStep, i, pMut, FILE_NAME));
+		pool.queueJob(std::bind(job, arr, prevStep, currentStep, pMutex, lab::FILE_NAME));
 	}
-
-	//wait for jobs to be passed to threads before joining them by thread pool destructor
-//	std::this_thread::sleep_for(std::chrono::seconds(2));
-	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::shared_ptr<std::mutex> pMut, const char* fileName)
+void job(std::shared_ptr<float[]> arr,
+         size_t bottom,
+         size_t top,
+         std::shared_ptr<std::mutex> pMut,
+         const char* fileName)
 {
+	printf("%lu is doing arbitrary math\n", GetCurrentThreadId());
 	for (size_t i = bottom; i < top; ++i)
 	{
-		for (size_t j = 0; j < ITERATIONS; ++j)
+		for (size_t j = 0; j < lab::ITERATIONS; ++j)
 		{
 			arr[i] = sqrt(arr[i]);
 			arr[i] *= arr[i];
 		}
 	}
+	printf("%lu has done all calculations\n", GetCurrentThreadId());
 
-	pMut->lock();
+	std::lock_guard<std::mutex> lock(*pMut);
 	std::ofstream file(fileName, std::ios::app);
-	std::cout << "id " << id << " opened file\n";
+	printf("%lu opened file\n", GetCurrentThreadId());
 
 	file.seekp(bottom);
 	for (size_t i = bottom; i < top; ++i)
@@ -76,6 +81,5 @@ void job(std::shared_ptr<float[]> arr, size_t bottom, size_t top, int id, std::s
 	}
 
 	file.close();
-	std::cout << "id " << id << " closed file\n";
-	pMut->unlock();
+	printf("%lu closed file\n", GetCurrentThreadId());
 }
