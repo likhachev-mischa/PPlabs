@@ -3,9 +3,12 @@
 #include <mutex>
 #include <queue>
 #include <vector>
+#include <condition_variable>
 
 #if defined (_WIN32) || defined (_WIN64)
 #include <Windows.h>
+#else
+#include <pthread.h>
 #endif
 
 uint32_t getThreadId();
@@ -25,7 +28,11 @@ public:
 	ThreadPool& operator=(ThreadPool&& other) = delete;
 
 private:
+#if defined (_WIN32) || defined (_WIN64)
 	static unsigned __stdcall threadLoop(void* param);
+#else
+	static void* threadLoop(void* param);
+#endif
 
 	void start();
 	void stop();
@@ -34,6 +41,8 @@ private:
 
 #if defined (_WIN32) || defined (_WIN64)
 	std::vector<HANDLE> m_threads;
+#else
+	std::vector<pthread_t> m_threads;
 #endif
 
 	struct ThreadData
