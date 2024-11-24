@@ -6,8 +6,6 @@
 #include <memory>
 #include <string>
 
-#include <conio.h>
-
 #include "ThreadPool.hpp"
 #include "Constants.hpp"
 
@@ -32,7 +30,7 @@ int main()
 		lab::ITERATIONS);
 
 	std::cout << "PRESS ANY KEY ...\n";
-	_getch();
+	std::cin.get();
 
 	ThreadPool pool;
 	size_t threadCount = pool.getThreadCount();
