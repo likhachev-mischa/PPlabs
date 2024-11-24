@@ -67,6 +67,8 @@ int main()
 		}
 		pool.queueJob(std::bind(job, arr, prevStep, currentStep, pMutex, lab::FILE_NAME));
 	}
+	//wait for threads to activate
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 void job(std::shared_ptr<float[]> arr,
