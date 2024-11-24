@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+#include <conio.h>
+
 #include "ThreadPool.hpp"
 #include "Constants.hpp"
 
@@ -14,6 +16,7 @@ void job(std::shared_ptr<float[]> arr,
          size_t top,
          std::shared_ptr<std::mutex> pMut,
          const char* fileName);
+
 
 int main()
 {
@@ -29,7 +32,7 @@ int main()
 		lab::ITERATIONS);
 
 	std::cout << "PRESS ANY KEY ...\n";
-	std::cin.get();
+	_getch();
 
 	ThreadPool pool;
 	size_t threadCount = pool.getThreadCount();
@@ -73,7 +76,7 @@ void job(std::shared_ptr<float[]> arr,
          std::shared_ptr<std::mutex> pMut,
          const char* fileName)
 {
-	printf("%u is doing computations\n", getThreadId());
+	printf("%u is doing computations...\n", getThreadId());
 	for (size_t i = bottom; i < top; ++i)
 	{
 		for (size_t j = 0; j < lab::ITERATIONS; ++j)

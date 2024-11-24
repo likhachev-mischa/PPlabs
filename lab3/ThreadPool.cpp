@@ -30,12 +30,8 @@ void ThreadPool::queueJob(const std::function<void()>& job)
 
 bool ThreadPool::isBusy()
 {
-	bool isPoolBusy;
-	{
-		std::lock_guard<std::mutex> lock(m_threadData.queueMutex);
-		isPoolBusy = !m_threadData.jobs.empty();
-	}
-	return isPoolBusy;
+	std::lock_guard<std::mutex> lock(m_threadData.queueMutex);
+	return !m_threadData.jobs.empty();
 }
 
 uint32_t ThreadPool::getThreadCount()
@@ -60,7 +56,12 @@ unsigned __stdcall ThreadPool::threadLoop(void* param)
 		std::function<void()> job = nullptr;
 		{
 			std::unique_lock<std::mutex> lock(data->queueMutex);
-			data->mutexCondition.wait(lock);
+			data->mutexCondition.wait(lock, [data] { return data->shouldTerminate || !data->jobs.empty(); });
+
+			if (data->shouldTerminate)
+			{
+				break;
+			}
 
 			if (!data->jobs.empty())
 			{
