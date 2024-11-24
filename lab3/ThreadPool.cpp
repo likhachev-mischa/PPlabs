@@ -70,12 +70,12 @@ unsigned __stdcall ThreadPool::threadLoop(void* param)
 		}
 		if (job)
 		{
-			printf("%lu is doing it's job\n", getThreadId());
+			printf("%u is doing it's job\n", getThreadId());
 			job();
-			printf("%lu has done it's job\n", getThreadId());
+			printf("%u has done it's job\n", getThreadId());
 		}
 	}
-	printf("%lu IS TERMINATED\n", getThreadId());
+	printf("%u IS TERMINATED\n", getThreadId());
 #if defined(_WIN32) || defined (_WIN64)
 	_endthreadex(0);
 	return 0;
@@ -105,7 +105,6 @@ void ThreadPool::start()
 		printf("pthread is created \n");
 		m_threads.push_back(thread);
 #endif
-
 	}
 }
 

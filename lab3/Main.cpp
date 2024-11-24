@@ -4,6 +4,8 @@
 #include <fstream>
 #include <chrono>
 #include <memory>
+#include <string>
+
 #include "ThreadPool.hpp"
 #include "Constants.hpp"
 
@@ -17,11 +19,23 @@ int main()
 {
 	printf(
 		"THIS PROGRAM CREATES N THREADS (BASED ON HARDWARE STATS) \n"
-		"LOADS EACH THREAD WITH COMPUTATIONS AND WRITES RESULT TO FILE Output.txt, WHICH REQUIRES THREAD SYNCHRONIZATION\n"
-		"===================\n===================\n");
+		"LOADS EACH THREAD WITH COMPUTATIONS AND WRITES RESULT TO FILE %s,"
+		" WHICH REQUIRES THREAD SYNCHRONIZATION\n"
+		"COMPUTATIONS: SQRT AND SQR OF EACH ARRAY MEMBER\n"
+		"ARRAY SIZE: %llu | NUMBER OF COMPUTATIONS PER ARRAY[i]: %llu\n"
+		"======================================\n",
+		lab::FILE_NAME,
+		lab::SIZE,
+		lab::ITERATIONS);
+
+	std::cout << "PRESS ANY KEY ...\n";
+	std::cin.get();
 
 	ThreadPool pool;
 	size_t threadCount = pool.getThreadCount();
+
+	//to stop console
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	std::shared_ptr<float[]> arr(new float[lab::SIZE], std::default_delete<float[]>());
 
@@ -59,7 +73,7 @@ void job(std::shared_ptr<float[]> arr,
          std::shared_ptr<std::mutex> pMut,
          const char* fileName)
 {
-	printf("%lu is doing arbitrary math\n", getThreadId());
+	printf("%u is doing computations\n", getThreadId());
 	for (size_t i = bottom; i < top; ++i)
 	{
 		for (size_t j = 0; j < lab::ITERATIONS; ++j)
@@ -68,18 +82,25 @@ void job(std::shared_ptr<float[]> arr,
 			arr[i] *= arr[i];
 		}
 	}
-	printf("%lu has done all calculations\n", getThreadId());
+	printf("%u has done all computations\n", getThreadId());
+
+	std::string buffer;
+	buffer.reserve(top - bottom + 1);
+
+	printf("%u is writing result to buffer\n", getThreadId());
+	for (int i = bottom; i < top; ++i)
+	{
+		buffer += std::to_string(arr[i]) + '\n';
+	}
+	printf("%u has done writing to buffer\n", getThreadId());
 
 	std::lock_guard<std::mutex> lock(*pMut);
 	std::ofstream file(fileName, std::ios::app);
-	printf("%lu opened file\n", getThreadId());
+	printf("%u opened file\n", getThreadId());
 
 	file.seekp(bottom);
-	for (size_t i = bottom; i < top; ++i)
-	{
-		file << arr[i] << '\n';
-	}
+	file << buffer;
 
 	file.close();
-	printf("%lu closed file\n", getThreadId());
+	printf("%u closed file\n", getThreadId());
 }
