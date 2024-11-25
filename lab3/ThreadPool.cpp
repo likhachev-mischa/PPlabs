@@ -88,7 +88,7 @@ unsigned __stdcall ThreadPool::threadLoop(void* param)
 void ThreadPool::start()
 {
 	m_threadCount = std::thread::hardware_concurrency();
-	printf("THREAD COUNT = %llu\n", m_threadCount);
+	printf("THREAD COUNT = %u\n", m_threadCount);
 	printf("THREAD ID | ACTION\n");
 	m_threads.reserve(m_threadCount);
 

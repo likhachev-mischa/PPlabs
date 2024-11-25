@@ -92,7 +92,7 @@ void job(std::shared_ptr<float[]> arr,
 	buffer.reserve(top - bottom + 1);
 
 	printf("%u is writing result to buffer\n", getThreadId());
-	for (int i = bottom; i < top; ++i)
+	for (size_t i = bottom; i < top; ++i)
 	{
 		buffer += std::to_string(arr[i]) + '\n';
 	}
@@ -102,7 +102,7 @@ void job(std::shared_ptr<float[]> arr,
 	std::ofstream file(fileName, std::ios::app);
 	printf("%u opened file\n", getThreadId());
 
-	file.seekp(bottom);
+	file.seekp(static_cast<long long>(bottom));
 	file << buffer;
 
 	file.close();
