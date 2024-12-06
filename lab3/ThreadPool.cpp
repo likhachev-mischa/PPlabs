@@ -4,6 +4,8 @@
 #include <mutex>
 #include <thread>
 
+#include "Platform.hpp"
+
 uint32_t getThreadId()
 {
 #if defined (_WIN32) || defined (_WIN64)
@@ -93,7 +95,7 @@ void ThreadPool::start()
 	m_threads.reserve(m_threadCount);
 
 	std::lock_guard<std::mutex> lock(m_threadData.queueMutex);
-	for (size_t i = 0; i < m_threadCount; ++i)
+	for (sizet i = 0; i < m_threadCount; ++i)
 	{
 #if defined (_WIN32) || defined (_WIN64)
 		uint32_t threadId;
@@ -120,13 +122,13 @@ void ThreadPool::stop()
 #if defined (_WIN32) || defined (_WIN64)
 	WaitForMultipleObjects(m_threadCount, m_threads.data(), TRUE, INFINITE);
 
-	for (size_t i = 0; i < m_threadCount; ++i)
+	for (sizet i = 0; i < m_threadCount; ++i)
 	{
 		CloseHandle(m_threads[i]);
 	}
 #else
 
-	for (size_t i = 0; i < m_threadCount; ++i)
+	for (sizet i = 0; i < m_threadCount; ++i)
 	{
 		pthread_join(m_threads[i],nullptr);
 	}

@@ -1,19 +1,19 @@
-#include <iostream>
-#include <random>
-
-#include <fstream>
-#include <thread>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <random>
 #include <string>
+#include <thread>
 
-#include "ThreadPool.hpp"
 #include "Constants.hpp"
+#include "ThreadPool.hpp"
+#include "Platform.hpp"
 
-void job(std::shared_ptr<float[]> arr,
-         size_t bottom,
-         size_t top,
-         std::shared_ptr<std::mutex> pMut,
+void job(const std::shared_ptr<float[]>& arr,
+         sizet bottom,
+         sizet top,
+         const std::shared_ptr<std::mutex>& pMut,
          const char* fileName);
 
 
@@ -34,15 +34,15 @@ int main()
 	std::cin.get();
 
 	ThreadPool pool;
-	size_t threadCount = pool.getThreadCount();
+	sizet threadCount = pool.getThreadCount();
 
 	//to stop console
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	std::shared_ptr<float[]> arr(new float[lab::SIZE], std::default_delete<float[]>());
 
-	srand(std::time(nullptr));
-	for (size_t i = 0; i < lab::SIZE; ++i)
+	srand(static_cast<unsigned int>(std::time(nullptr)));
+	for (sizet i = 0; i < lab::SIZE; ++i)
 	{
 		arr[i] = static_cast<float>(rand() % lab::SIZE);
 	}
@@ -51,12 +51,12 @@ int main()
 	file.clear();
 	file.close();
 
-	size_t step = static_cast<size_t>(floor(lab::SIZE / threadCount));
-	size_t currentStep = 0;
+	sizet step = static_cast<size_t>(floor(lab::SIZE / threadCount));
+	sizet currentStep = 0;
 	std::shared_ptr<std::mutex> pMutex(new std::mutex);
-	for (size_t i = 0; i < threadCount; ++i)
+	for (sizet i = 0; i < threadCount; ++i)
 	{
-		size_t prevStep = currentStep;
+		sizet prevStep = currentStep;
 		if ((currentStep + step) > (lab::SIZE - step))
 		{
 			currentStep = lab::SIZE;
@@ -71,16 +71,16 @@ int main()
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-void job(std::shared_ptr<float[]> arr,
-         size_t bottom,
-         size_t top,
-         std::shared_ptr<std::mutex> pMut,
-         const char* fileName)
+auto job(const std::shared_ptr<float[]>& arr,
+         sizet bottom,
+         const sizet top,
+         const std::shared_ptr<std::mutex>& pMut,
+         const char* fileName) -> void
 {
 	printf("%u is doing computations...\n", getThreadId());
-	for (size_t i = bottom; i < top; ++i)
+	for (sizet i = bottom; i < top; ++i)
 	{
-		for (size_t j = 0; j < lab::ITERATIONS; ++j)
+		for (sizet j = 0; j < lab::ITERATIONS; ++j)
 		{
 			arr[i] = sqrt(arr[i]);
 			arr[i] *= arr[i];
@@ -92,7 +92,7 @@ void job(std::shared_ptr<float[]> arr,
 	buffer.reserve(top - bottom + 1);
 
 	printf("%u is writing result to buffer\n", getThreadId());
-	for (size_t i = bottom; i < top; ++i)
+	for (sizet i = bottom; i < top; ++i)
 	{
 		buffer += std::to_string(arr[i]) + '\n';
 	}
@@ -102,7 +102,7 @@ void job(std::shared_ptr<float[]> arr,
 	std::ofstream file(fileName, std::ios::app);
 	printf("%u opened file\n", getThreadId());
 
-	file.seekp(static_cast<long long>(bottom));
+	file.seekp(bottom);
 	file << buffer;
 
 	file.close();
